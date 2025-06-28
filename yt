@@ -1,0 +1,3 @@
+#! /bin/bash
+ORIGINAL_DIR=$(pwd)
+cd /Users/nonocast/Develop/2025/06-youtube/yt && uv run main.py --original-dir "$ORIGINAL_DIR" "$@"
