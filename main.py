@@ -14,7 +14,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="yt")
+@click.version_option(version="0.1.0", prog_name="ytkit")
 @click.option('--original-dir', hidden=True, help='原始工作目录')
 @click.pass_context
 def main(ctx, original_dir):
