@@ -5,6 +5,7 @@ import click
 import logging
 from tools.commands.init import InitCommand
 from tools.commands.download import DownloadCommand
+from tools.commands.transcripts import TranscriptsCommand
 
 # 配置logging
 logging.basicConfig(
@@ -25,6 +26,7 @@ def main(ctx, original_dir):
 # 注册命令
 main.add_command(InitCommand.init)
 main.add_command(DownloadCommand.download)
+main.add_command(TranscriptsCommand.transcripts)
 
 if __name__ == "__main__":
     main() 

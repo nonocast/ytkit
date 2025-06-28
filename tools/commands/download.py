@@ -7,6 +7,8 @@ import yt_dlp
 import requests
 import re
 import glob
+from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api.formatters import WebVTTFormatter
 
 
 def download_mp4(url, original_dir):
@@ -185,6 +187,70 @@ def merge_subtitles(original_dir, video_id):
     except Exception as e:
         click.echo(f"❌ 合并字幕时出错: {e}")
 
+def download_vtt_subtitle(url, lang, original_dir):
+    """使用 youtube-transcript-api 下载 VTT 格式字幕"""
+    click.echo(f"📝 下载 VTT 字幕 ({lang}): {url}")
+    
+    # 获取视频ID
+    import re as _re
+    m = _re.search(r"[?&]v=([a-zA-Z0-9_-]{11})", url)
+    video_id = m.group(1) if m else 'video'
+    vtt_file = os.path.join(original_dir, f'{video_id}.{lang}.vtt')
+    
+    if os.path.exists(vtt_file):
+        click.echo(f"⚠️ VTT 字幕文件已存在，跳过下载: {vtt_file}")
+        return
+    
+    try:
+        # 语言代码映射
+        lang_map = {
+            'en': 'en',
+            'zh-Hans': 'zh-CN',
+            'zh': 'zh-CN'
+        }
+        transcript_lang = lang_map.get(lang, lang)
+        
+        # 获取字幕
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        
+        # 尝试获取指定语言的字幕
+        transcript = None
+        try:
+            transcript = transcript_list.find_transcript([transcript_lang])
+        except:
+            # 如果找不到指定语言，尝试自动生成的字幕
+            try:
+                transcript = transcript_list.find_generated_transcript([transcript_lang])
+            except:
+                # 如果还是找不到，尝试其他变体
+                try:
+                    if lang == 'zh-Hans':
+                        transcript = transcript_list.find_transcript(['zh'])
+                    elif lang == 'en':
+                        transcript = transcript_list.find_transcript(['en-US', 'en-GB'])
+                except:
+                    pass
+        
+        if not transcript:
+            click.echo(f"❌ 没有找到 {lang} 的 VTT 字幕")
+            return
+        
+        # 获取字幕数据
+        subtitle_data = transcript.fetch()
+        
+        # 转换为 VTT 格式
+        formatter = WebVTTFormatter()
+        vtt_content = formatter.format_transcript(subtitle_data)
+        
+        # 保存 VTT 文件
+        with open(vtt_file, 'w', encoding='utf-8') as f:
+            f.write(vtt_content)
+        
+        click.echo(f"✅ VTT 字幕 ({lang}) 已保存为 {vtt_file}")
+        
+    except Exception as e:
+        click.echo(f"❌ 下载 VTT 字幕 ({lang}) 时出错: {e}")
+
 class DownloadCommand:
     """下载命令处理器"""
     
@@ -216,6 +282,9 @@ class DownloadCommand:
             # 下载字幕（en，zh-Hans）
             download_subtitle(url, 'en', original_dir)
             download_subtitle(url, 'zh-Hans', original_dir)
+            
+            # 下载 VTT 字幕（只下载英文）
+            download_vtt_subtitle(url, 'en', original_dir)
             
             # 合并字幕
             import re as _re
