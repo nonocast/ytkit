@@ -3,9 +3,7 @@ YouTube工具集 - 主入口
 """
 import click
 import logging
-from tools.commands.init import InitCommand
-from tools.commands.download import DownloadCommand
-from tools.commands.transcripts import TranscriptsCommand
+from tools.commands import InitCommand, DownloadCommand, XCommand
 
 # 配置logging
 logging.basicConfig(
@@ -26,7 +24,7 @@ def main(ctx, original_dir):
 # 注册命令
 main.add_command(InitCommand.init)
 main.add_command(DownloadCommand.download)
-main.add_command(TranscriptsCommand.transcripts)
+main.add_command(XCommand.x)
 
 if __name__ == "__main__":
     main() 

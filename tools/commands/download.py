@@ -102,8 +102,13 @@ def download_subtitle(url, lang, original_dir):
 def download_cover(url, original_dir):
     click.echo(f"🖼️ 获取封面信息: {url}")
     
+    # 获取视频ID
+    import re as _re
+    m = _re.search(r"[?&]v=([a-zA-Z0-9_-]{11})", url)
+    video_id = m.group(1) if m else 'video'
+    
     # 检查文件是否已存在
-    cover_file = os.path.join(original_dir, 'cover.jpg')
+    cover_file = os.path.join(original_dir, f'{video_id}.jpg')
     if os.path.exists(cover_file):
         click.echo(f"⚠️ 封面文件已存在，跳过下载: {cover_file}")
         return
@@ -256,8 +261,9 @@ class DownloadCommand:
     
     @staticmethod
     @click.command()
+    @click.option('--skip-mp4', is_flag=True, default=False, help='跳过mp4视频下载')
     @click.pass_context
-    def download(ctx):
+    def download(ctx, skip_mp4):
         """下载YouTube视频"""
         # 使用原始工作目录
         original_dir = ctx.obj.get('original_dir', '.')
@@ -278,7 +284,10 @@ class DownloadCommand:
                 url = f.read().strip()
             click.echo(f"📥 准备下载: {url}")
             # 下载mp4
-            download_mp4(url, original_dir)
+            if not skip_mp4:
+                download_mp4(url, original_dir)
+            else:
+                click.echo("⏭️ 跳过mp4视频下载")
             # 下载字幕（en，zh-Hans）
             download_subtitle(url, 'en', original_dir)
             download_subtitle(url, 'zh-Hans', original_dir)

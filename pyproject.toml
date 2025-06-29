@@ -5,7 +5,13 @@ description = "YouTube工具集"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "click>=8.0.0"
+    "click>=8.0.0",
+    "youtube-transcript-api>=0.6.0",
+    "openai>=1.0.0",
+    "deepseek-ai>=0.0.1",
+    "requests>=2.25.0",
+    "flask>=2.0.0",
+    "flask-cors>=3.0.0",
 ]
 
 [project.scripts]
