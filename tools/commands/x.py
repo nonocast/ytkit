@@ -11,13 +11,8 @@ from ..llm_analyzer import LLMAnalyzer, PreprocessedFileParser
 class XCommand:
     @staticmethod
     @click.command()
-    @click.option('--step', type=click.Choice(['preprocess', 'analyze', 'both']), 
-                  default='both', help='执行步骤：preprocess(预处理), analyze(分析), both(全部)')
-    @click.option('--batch-size', default=5, help='LLM批量处理大小')
-    @click.option('--model', default='gpt-4o-mini', help='LLM模型名称')
-    @click.option('--api-key', help='OpenAI API密钥')
     @click.pass_context
-    def x(ctx, step, batch_size, model, api_key):
+    def x(ctx):
         """两步处理：预处理字幕 + LLM分析"""
         original_dir = ctx.obj.get('original_dir') or os.getcwd()
         result = MdCommand.check_vtt_file(original_dir)
@@ -25,10 +20,8 @@ class XCommand:
             ctx.exit(1)
         video_id, vtt_file, url = result
         try:
-            if step in ['preprocess', 'both']:
-                XCommand.step1_preprocess(video_id, vtt_file, original_dir)
-            if step in ['analyze', 'both']:
-                XCommand.step2_analyze(video_id, original_dir, batch_size, model, api_key)
+            XCommand.step1_preprocess(video_id, vtt_file, original_dir)
+            XCommand.step2_analyze(video_id, original_dir)
         except Exception as e:
             click.echo(f"❌ 命令执行失败: {e}")
             ctx.exit(1)
@@ -40,7 +33,7 @@ class XCommand:
         MdCommand.process_md(video_id, vtt_file, original_dir)
 
     @staticmethod
-    def step2_analyze(video_id, original_dir, batch_size, model, api_key):
+    def step2_analyze(video_id, original_dir):
         """第二步：调用LLM生成分析字典"""
         click.echo("🤖 第二步：调用LLM分析...")
         
@@ -56,8 +49,8 @@ class XCommand:
         click.echo(f"📝 解析到 {len(sentences)} 个句子")
         
         # 创建LLM分析器并分析
-        analyzer = LLMAnalyzer(model=model, api_key=api_key)
-        results = analyzer.analyze_sentences(sentences, batch_size)
+        analyzer = LLMAnalyzer()
+        results = analyzer.analyze_sentences(sentences)
         
         if not results:
             return

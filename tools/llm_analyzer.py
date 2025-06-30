@@ -11,21 +11,22 @@ import click
 class LLMAnalyzer:
     """LLM分析器，负责调用大模型进行句子分析"""
     
-    def __init__(self, model='gpt-4o-mini', api_key=None):
-        self.model = model
-        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
+    def __init__(self):
+        self.model = 'gpt-4o-mini'
+        self.api_key = os.getenv('OPENAI_API_KEY')
         self.client = None
         if self.api_key:
             self.client = openai.OpenAI(api_key=self.api_key)
     
-    def analyze_sentences(self, sentences, batch_size=5):
+    def analyze_sentences(self, sentences):
         """分析句子列表，返回结构化结果"""
         if not self.client:
             click.echo("❌ 未找到OpenAI API密钥")
-            click.echo("💡 请设置环境变量 OPENAI_API_KEY 或使用 --api-key 参数")
+            click.echo("💡 请设置环境变量 OPENAI_API_KEY")
             return None
         
         # 调试时只处理第一批
+        batch_size = 5
         batch = sentences[0:batch_size] 
         click.echo(f"🔄 处理第一批 {batch_size} 个句子进行调试")
         
